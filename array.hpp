@@ -1,16 +1,14 @@
 #pragma once
 
-#include <stdint.h>
-#include <stdlib.h>
-#include <memory.h>
+#include "standard.hpp"
 
 namespace corelib {
   template<typename T> struct array {
-    unsigned Capacity;
-    unsigned Length;
+    n32 Capacity;
+    n32 Length;
     T* Data;
 
-    void Initialize(int Capacity = 2) {
+    void Initialize(n32 Capacity = 2) {
       Capacity = 2;
       Length = 0;
       Data = (T*)malloc(2 * sizeof(T));
@@ -21,7 +19,7 @@ namespace corelib {
       Data = nullptr;
     }
 
-    void Resize(int Target) {
+    void Resize(n32 Target) {
       Capacity = Target;
       Data = (T*)realloc(Data, Capacity * sizeof(T));
     }
@@ -35,7 +33,7 @@ namespace corelib {
       Length = Length + 1;
     }
 
-    void Remove(int Index) {
+    void Remove(n32 Index) {
       if (Length > 0) {
         Length = Length - 1;
         Data[Index] = Data[Length];
@@ -44,6 +42,12 @@ namespace corelib {
           Resize(Capacity / 2);
         }
       }
+    }
+
+    T Pop() {
+      T Result = Data[Length];
+      Remove(Length);
+      return Result;
     }
 
     array<T>* Copy() {
