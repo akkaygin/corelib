@@ -15,6 +15,9 @@ namespace corelib {
     node* Head;
     node* Tail;
 
+    n32 CachedIndex;
+    node* CachedNode;
+
     public:
     n32 Length;
 
@@ -22,19 +25,24 @@ namespace corelib {
       Head = nullptr;
       Tail = nullptr;
       Length = 0;
+
+      CachedNode = nullptr;
     }
 
     void Destroy() {
       node* NextNode = Head;
-      while (NextNode->Next != nullptr) {
+      while (NextNode != Tail) {
         node* CurrentNode = NextNode;
         NextNode = CurrentNode->Next;
         free(CurrentNode);
       }
+      free(Tail);
 
       Head = nullptr;
       Tail = nullptr;
       Length = 0;
+
+      CachedNode = nullptr;
     }
 
     void Insert(T Value, n32 Index) {
@@ -59,6 +67,9 @@ namespace corelib {
           Previous->Next = NewNode;
         }
       }
+
+      CachedIndex = Index;
+      CachedNode = NewNode;
       
       Length = Length + 1;
     }
@@ -90,6 +101,7 @@ namespace corelib {
         Head = NewNode;
       }
 
+      CachedIndex = CachedIndex + 1;
       Length = Length + 1;
     }
 
@@ -109,6 +121,12 @@ namespace corelib {
         node* Target = Previous->Next;
         Previous->Next = Target->Next;
         free(Target);
+      }
+
+      if (CachedIndex == Index) {
+        CachedNode = nullptr;
+      } else if (CachedIndex > Index) {
+        CachedIndex = CachedIndex - 1;
       }
 
       Length = Length - 1;
@@ -131,16 +149,35 @@ namespace corelib {
         Tail = Previous;
       }
 
+      if (CachedIndex == Length) {
+        CachedNode = nullptr;
+      }
+
       Length = Length - 1;
       return Result;
     }
 
     T Get(n32 Index) {
-      node* Result = Head;
-      for (n32 i = 0; i < Index; i++) {
+      if (Index == Length) {
+        return Tail->Value;
+      } else if (Index == 0) {
+        return Head->Value;
+      }
+
+      node* Result = Head->Next;
+      n32 i = 1;
+
+      if (CachedNode != nullptr && CachedIndex <= Index) {
+        Result = CachedNode;
+        i = CachedIndex;
+      }
+
+      for (; i < Index; i++) {
         Result = Result->Next;
       }
 
+      CachedIndex = Index;
+      CachedNode = Result;
       return Result->Value;
     }
   };
